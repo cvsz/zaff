@@ -1,0 +1,20 @@
+{
+  "name": "@zaff/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --root ../.. api",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@zaff/auth": "*",
+    "@zaff/contracts": "*",
+    "@zaff/db": "*",
+    "@zaff/observability": "*"
+  }
+}

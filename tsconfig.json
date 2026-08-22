@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/contracts" },
+    { "path": "packages/db" },
+    { "path": "packages/events" },
+    { "path": "packages/storage" },
+    { "path": "packages/observability" },
+    { "path": "services/auth" },
+    { "path": "apps/api" }
+  ]
+}
