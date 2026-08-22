@@ -203,6 +203,46 @@ Statuses: `TODO` → `IN_PROGRESS` → `REVIEW` → `DONE` | `BLOCKED` | `CANCEL
 
 ---
 
+### AFF-2 — Link redirect service + click attribution
+
+- **ID:** AFF-2
+- **Priority:** P0
+- **Status:** DONE
+- **Dependencies:** AFF-1
+- **Scope:** GET /go/{slug} 302 redirect w/ UTM merge, fire-and-forget click
+  recording (migration 0007: hashed-truncated IP only, no raw IP anywhere),
+  ClickRecorded events, org-scoped clicks listing under RBAC.
+- **Acceptance criteria:** verified live — 302 w/ merged UTMs, raw IP absent
+  from DB rows/responses/logs, expired/unknown slugs 404, no cookies, no-store.
+
+### AFF-3 — Campaign/conversion HTTP APIs + signed webhook ingestion
+
+- **ID:** AFF-3
+- **Priority:** P0
+- **Status:** DONE
+- **Dependencies:** AFF-1
+- **Scope:** Campaign CRUD + legal-transition endpoints (RBAC, CSRF),
+  affiliate-link creation API, conversions list + commission aggregates,
+  HMAC-SHA256 webhook at /webhooks/affiliates/:providerCode (raw-body signing,
+  ±300s replay window, constant-time compare, idempotent dedupe,
+  ConversionRecorded publish).
+- **Acceptance criteria:** verified live — full lifecycle, tamper/stale/replay
+  all rejected, duplicate webhook deduped:true with single row.
+
+### ADT-1 — Platform adapter framework + provider skeletons
+
+- **ID:** ADT-1
+- **Priority:** P0
+- **Status:** DONE
+- **Dependencies:** FND-1
+- **Scope:** packages/platform-adapters: PlatformAdapter port, versioned
+  PlatformPolicyRegistry (zod-validated, docs-snapshot honesty fields),
+  BasePlatformAdapter capability gating, TikTok/Shopee/Meta/YouTube skeletons
+  with deterministic request signing via injected fetch+getSecret; zero new deps.
+- **Acceptance criteria:** undeclared-capability calls throw typed errors with
+  zero network I/O; signatures independently recomputed; contract parity with
+  PlatformCapability enforced by test; secrets never stored/logged.
+
 ### BK-3 — Signed-URL support for storage port
 
 - **ID:** BK-3
@@ -246,6 +286,8 @@ Statuses: `TODO` → `IN_PROGRESS` → `REVIEW` → `DONE` | `BLOCKED` | `CANCEL
 | 2026-08-22 | Parallel 3-agent iteration: FND-7 (OIDC+PKCE, mock-provider contract tests, JWKS RS256 verify), BK-1 (vitest ^4.1.11, npm audit 5→0 vulns), BK-3 (HMAC signed URLs + verifySignedRequest) executed and independently verified PASS (197/197 tests, live OAuth security probes 29/29). All defined work items DONE. Backlog added: BK-4 migration shape assertion; tracked: prod wiring of authService in apps/api entrypoint. Phase 2 detailing next. |
 | 2026-08-22 | Docs iteration: THREAT-MODEL/PRIVACY/COMPLIANCE/CONTRIBUTING.md authored from code evidence; surfaced OAuth Host-trust, limiter-eviction, synthetic-email, dev-secret-guard gaps → SEC-1 + BK-4 scope. |
 | 2026-08-22 | Parallel 4-agent batch executed: BK-4 (drift detection w/ schema fingerprints, prod auth wiring fail-fast DATABASE_URL, dev-secret boot guard, limiter expired-only eviction), BK-2 (RedisStreamsEventBus at-least-once, XAUTOCLAIM reclaim, capped DLQ streams, withIdempotency dedupe, contract parity both adapters), FND-8 (account recovery service layer, race-safe single-use tokens, anti-enumeration uniform 429), SEC-1 (Host allowlist, APP_BASE_URL redirect_uri, @oidc.invalid synthetic emails, state single-use), AFF-1 (affiliate core domain: 0006 migration, 7 org-scoped repos, contracts schemas). Verifier found blocker D1 (contracts barrel TDZ cycle crashing built artifacts node-first) → repaired via capabilities.ts extraction + regression guard; D2 numbering note; R1 ghost-email rate symmetry fixed. Re-verified: CONTRACTS_BOOT_OK, plain-node API boot /health 200, 299/299 tests. |
+| 2026-08-22 | Committed + GPG-pushed baseline a5cd56a to github.com/cvsz/zaff (private). |
+| 2026-08-22 | Parallel 3-agent batch: AFF-2 (/go/{slug} redirect + privacy-conscious click attribution, migration 0007 hashed-truncated IPs), AFF-3 (campaign/link/conversion HTTP APIs + HMAC-signed idempotent webhook ingestion w/ replay window), ADT-1 (platform-adapter framework: policy registry + capability-gated TikTok/Shopee/Meta/YouTube skeletons, deterministic signing, zero deps). Verifier PARTIAL → repairs applied: DEF-1 prod linkRoutes authService wiring (503→401), DEF-2 CLICK_SALT/WEBHOOK_INGEST_SECRET added to fail-closed guard, DEF-3 zod declared. Final: 355/355 tests, all gates green, live probes pass. Phase 2 core complete; remaining Phase 2: real provider credentials/conformance runs. |
 
 ## Backlog
 

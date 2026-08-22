@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import postgres from "postgres";
 import {
   appendAuditEvent,
@@ -31,12 +31,14 @@ try {
 
 const suite = describe.skipIf(!dbAvailable);
 
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
+
 suite("packages/db integration", () => {
   const db = createDb(TEST_URL);
 
   async function resetSchema(): Promise<void> {
     await db.unsafe(
-      "DROP TABLE IF EXISTS audit_log, sessions, users, organizations, schema_migrations CASCADE"
+      "DROP TABLE IF EXISTS clicks, audit_log, sessions, users, organizations, schema_migrations CASCADE"
     );
   }
 

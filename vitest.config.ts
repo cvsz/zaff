@@ -16,6 +16,9 @@ export default defineConfig({
       "@zaff/storage": fileURLToPath(
         new URL("./packages/storage/src/index.ts", import.meta.url)
       ),
+      "@zaff/platform-adapters": fileURLToPath(
+        new URL("./packages/platform-adapters/src/index.ts", import.meta.url)
+      ),
       "@zaff/observability": fileURLToPath(
         new URL("./packages/observability/src/index.ts", import.meta.url)
       ),

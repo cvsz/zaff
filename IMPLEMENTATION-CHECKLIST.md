@@ -20,10 +20,9 @@ Mirrors `exec-planning.md` (the execution source of truth). Statuses:
 
 ## Phase 2 — Affiliate Core (in progress)
 - [x] AFF-1 Affiliate core domain model (migration 0006, org-scoped repos, contracts)
-- [ ] Adapter interfaces + capability registry wiring
-- [ ] TikTok/Shopee/Meta/YouTube adapter skeletons (sandbox contract tests)
-- [ ] `/go/{slug}` redirect service + click attribution
-- [ ] Campaign HTTP API + conversion ingestion endpoints
+- [x] ADT-1 Adapter framework + policy registry + TikTok/Shopee/Meta/YouTube gated skeletons
+- [x] AFF-2 `/go/{slug}` redirect + hashed-IP click attribution
+- [x] AFF-3 Campaign APIs + signed idempotent webhook ingestion
 
 ## Foundation extras
 - [x] FND-8 Account recovery service layer (HTTP wiring pending)

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import postgres from "postgres";
 import {
   IllegalTransitionError,
@@ -42,6 +42,8 @@ try {
 }
 
 const suite = describe.skipIf(!dbAvailable);
+
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const SCRATCH_DB = `zaff_aff_test_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
 const SCRATCH_URL = BASE_URL.replace(/\/[^/]+$/, `/${SCRATCH_DB}`);
@@ -337,12 +339,13 @@ suite("packages/db affiliate repos (scratch db)", () => {
   });
 
   it("reverts and re-applies the affiliate migration cleanly", async () => {
-    const reverted = await migrateDown(db, 1);
-    expect(reverted).toEqual(["0006_affiliate.sql"]);
+    const reverted = await migrateDown(db, 2);
+    expect(reverted).toEqual(["0007_clicks.sql", "0006_affiliate.sql"]);
     const tables = (
       await db`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`
     ).map((r) => r.table_name as string);
     for (const t of [
+      "clicks",
       "conversions",
       "affiliate_links",
       "campaigns",

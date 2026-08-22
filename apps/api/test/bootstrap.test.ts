@@ -33,18 +33,22 @@ describe("findDevSecretViolations", () => {
     );
     expect(violations.some((v) => v.startsWith("OAUTH_STATE_SECRET"))).toBe(true);
     expect(violations.some((v) => v.startsWith("STORAGE_SIGNING_SECRET"))).toBe(true);
+    expect(violations.some((v) => v.startsWith("CLICK_SALT"))).toBe(true);
+    expect(violations.some((v) => v.startsWith("WEBHOOK_INGEST_SECRET"))).toBe(true);
   });
 
   it("flags dev-default values explicitly set in production", () => {
     const violations = findDevSecretViolations(
-      {
-        NODE_ENV: "production",
-        OAUTH_STATE_SECRET: "zaff_dev_state_secret_change_me",
-        STORAGE_SIGNING_SECRET: "zaff_dev_signing_secret_change_me",
-      },
-      "production"
-    );
-    expect(violations).toHaveLength(2);
+        {
+          NODE_ENV: "production",
+          OAUTH_STATE_SECRET: "zaff_dev_state_secret_change_me",
+          STORAGE_SIGNING_SECRET: "zaff_dev_signing_secret_change_me",
+          CLICK_SALT: "zaff_dev_click_salt_change_me",
+          WEBHOOK_INGEST_SECRET: "zaff_dev_webhook_secret_change_me",
+        },
+        "production"
+      );
+      expect(violations).toHaveLength(4);
     expect(violations.every((v) => v.includes("dev-default"))).toBe(true);
   });
 
@@ -55,6 +59,8 @@ describe("findDevSecretViolations", () => {
           NODE_ENV: "production",
           OAUTH_STATE_SECRET: "a-real-64-byte-secret-value",
           STORAGE_SIGNING_SECRET: "another-real-secret-value",
+          CLICK_SALT: "a-real-click-salt-value",
+          WEBHOOK_INGEST_SECRET: "a-real-webhook-secret-value",
         },
         "production"
       )

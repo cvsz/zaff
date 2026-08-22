@@ -54,7 +54,7 @@ suite("services/auth account-recovery integration", () => {
 
   async function resetSchema(): Promise<void> {
     await db.unsafe(
-      "DROP TABLE IF EXISTS recovery_tokens, audit_log, sessions, user_identities, users, organizations, schema_migrations CASCADE"
+      "DROP TABLE IF EXISTS clicks, recovery_tokens, audit_log, sessions, user_identities, users, organizations, schema_migrations CASCADE"
     );
   }
 

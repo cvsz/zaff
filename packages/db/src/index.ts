@@ -12,3 +12,4 @@ export * from "./repos/offers.js";
 export * from "./repos/campaigns.js";
 export * from "./repos/affiliate-links.js";
 export * from "./repos/conversions.js";
+export * from "./repos/clicks.js";

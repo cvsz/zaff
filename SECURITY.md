@@ -121,7 +121,8 @@ Status: initial threat-model-lite for Phase 1 (FND-1..FND-3). Revisit at each ph
 
 ### Dev-secret guard
 - New boot-time check (`assertNoDevSecrets`) refuses to start when
-  `NODE_ENV=production` while `OAUTH_STATE_SECRET` or `STORAGE_SIGNING_SECRET`
+  `NODE_ENV=production` while `OAUTH_STATE_SECRET`, `STORAGE_SIGNING_SECRET`,
+  `CLICK_SALT`, or `WEBHOOK_INGEST_SECRET`
   is unset (dev-default fallback would activate) or set to the documented
   dev-default values. The API logs and exits non-zero.
 - The OAuth state secret dev fallback remains for local development only;
@@ -158,3 +159,50 @@ Status: initial threat-model-lite for Phase 1 (FND-1..FND-3). Revisit at each ph
   state is rejected with `400 unknown_state`. Covered by unit tests
   (`apps/api/test/oauth.security.test.ts`) and by the mock-provider integration
   test ("rejects replaying a consumed callback").
+
+## Click attribution privacy (AFF-2 `/go/{slug}`)
+
+- **No raw IPs are ever stored, logged, or returned.** The redirect handler
+  derives the client IP from `x-forwarded-for` (first hop) or the socket
+  address, computes `sha256(ip + CLICK_SALT)`, and stores only the first
+  16 hex characters of that digest in `clicks.ip_hash`. The truncated hash is
+  a pseudonymous correlation key only; it is not reversible into an IP within
+  practical effort and is excluded from all API responses.
+- **CLICK_SALT** — per-environment secret; production deployments must inject
+  it from a secret manager. Dev-only fallback:
+  `zaff_dev_click_salt_change_me` (documented dev default, never used when
+  `NODE_ENV=production` requires secrets via the existing dev-secret guard
+  policy).
+- **Minimal metadata** — clicks persist only: link id (org-scoped),
+  timestamp, truncated ip hash, user-agent, referer, and an optional
+  country hint taken verbatim from a request header (no geo database). No
+  cookies are set on `/go/*` responses (`Cache-Control: no-store` also
+  prevents intermediary caching of redirect targets).
+- **Non-blocking writes** — click recording failures never block or fail the
+  redirect; they are caught and logged without IP values.
+
+## Webhook ingestion signatures (affiliate conversions)
+
+- **HMAC-SHA256 over the raw body** — `POST /webhooks/affiliates/:providerCode`
+  authenticates with `x-zaff-timestamp` (unix seconds) and
+  `x-zaff-signature` (hex HMAC-SHA256 of `${providerCode}.${timestamp}.${rawBody}`).
+  The signature is computed over the exact bytes received, captured from the
+  socket *before* any JSON parsing, so parser-level re-serialization cannot
+  alter the signed payload.
+- **Constant-time comparison** — verification uses `crypto.timingSafeEqual`
+  after a fixed-length (64 hex char) format check; malformed or short
+  signatures are rejected without comparison.
+- **Replay protection** — timestamps outside a ±300s window are rejected with
+  `401 replay_rejected`. Idempotent persistence (`recordConversion` partial
+  unique index on `(link_id, external_order_id)`) bounds damage from replays
+  inside the window to a `deduped: true` no-op.
+- **Secret management** — per-provider secrets come from
+  `WEBHOOK_INGEST_SECRET_<PROVIDERCODE_UPPER>` falling back to shared
+  `WEBHOOK_INGEST_SECRET`. The dev-only fallback secret
+  (`zaff_dev_webhook_secret_change_me`) is for local development only;
+  production bootstraps must fail closed via the existing dev-secret guard.
+- **Minimal failure leakage** — invalid signatures return one generic
+  `401 invalid_signature`; unresolvable links return `422 unresolvable_link`
+  without revealing org or link ownership; audit metadata records only the
+  provider code and conversion id — never signatures, secrets, or raw bodies,
+  which are also excluded from info-level logs.

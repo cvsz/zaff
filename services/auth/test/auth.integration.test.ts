@@ -39,7 +39,7 @@ suite("services/auth integration", () => {
 
   async function resetSchema(): Promise<void> {
     await db.unsafe(
-      "DROP TABLE IF EXISTS audit_log, sessions, users, organizations, schema_migrations CASCADE"
+      "DROP TABLE IF EXISTS clicks, audit_log, sessions, users, organizations, schema_migrations CASCADE"
     );
   }
 

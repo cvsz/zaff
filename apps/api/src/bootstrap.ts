@@ -1,11 +1,16 @@
 import { AuthService } from "@zaff/auth";
 import { createDb } from "@zaff/db";
+import { DEV_WEBHOOK_SECRET } from "./campaign-routes.js";
+import { DEFAULT_CLICK_SALT } from "./link-routes.js";
 
-// Keep in sync with the dev-only fallbacks in oauth-routes.ts and
-// packages/storage/src/signing.ts; production must override both.
+// Keep in sync with the dev-only fallbacks in oauth-routes.ts,
+// packages/storage/src/signing.ts, link-routes.ts (CLICK_SALT), and
+// campaign-routes.ts (WEBHOOK_INGEST_SECRET); production must override all of them.
 const DEV_DEFAULT_SECRETS: ReadonlyArray<{ envVar: string; devValue: string }> = [
   { envVar: "OAUTH_STATE_SECRET", devValue: "zaff_dev_state_secret_change_me" },
   { envVar: "STORAGE_SIGNING_SECRET", devValue: "zaff_dev_signing_secret_change_me" },
+  { envVar: "CLICK_SALT", devValue: DEFAULT_CLICK_SALT },
+  { envVar: "WEBHOOK_INGEST_SECRET", devValue: DEV_WEBHOOK_SECRET },
 ];
 
 export class DevSecretError extends Error {

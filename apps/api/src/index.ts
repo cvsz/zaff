@@ -1,5 +1,7 @@
 import { createLogger, initTracing } from "@zaff/observability";
+import { createDb } from "@zaff/db";
 import { assertNoDevSecrets, resolveAuthService } from "./bootstrap.js";
+import { DEFAULT_CLICK_SALT } from "./link-routes.js";
 import { startServer } from "./server.js";
 
 const logger = createLogger({ name: "api" });
@@ -26,7 +28,15 @@ try {
   process.exit(1);
 }
 
-startServer(port, { logger, authService })
+const db = createDb(process.env.DATABASE_URL!);
+const clickSalt = process.env.CLICK_SALT ?? DEFAULT_CLICK_SALT;
+
+startServer(port, {
+  logger,
+  authService,
+  linkRoutes: { db, authService, clickSalt, logger },
+  campaignRoutes: { db, authService, logger },
+})
   .then((server) => {
     const address = server.address();
     const actualPort = typeof address === "object" && address ? address.port : port;

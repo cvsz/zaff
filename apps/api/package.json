@@ -15,6 +15,7 @@
     "@zaff/auth": "*",
     "@zaff/contracts": "*",
     "@zaff/db": "*",
-    "@zaff/observability": "*"
+    "@zaff/observability": "*",
+    "zod": "^3.23.8"
   }
 }

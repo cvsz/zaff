@@ -9,19 +9,30 @@ import {
   type RateLimiter,
 } from "./auth-routes.js";
 import { handleOAuthRoute } from "./oauth-routes.js";
+import { handleLinkRoute, type LinkRouteDeps } from "./link-routes.js";
+import {
+  registerCampaignRoutes,
+  type CampaignRouteDeps,
+  type CampaignRouteHandler,
+} from "./campaign-routes.js";
 
 export interface ServerOptions extends AuthRouteDeps {
   loginRateLimit?: { windowMs: number; max: number };
+  goRateLimit?: { windowMs: number; max: number };
   logger?: Logger;
+  linkRoutes?: LinkRouteDeps;
+  campaignRoutes?: CampaignRouteDeps;
 }
 
 function route(
   req: IncomingMessage,
   res: ServerResponse,
   options: ServerOptions,
-  loginLimiter: RateLimiter
+  loginLimiter: RateLimiter,
+  goLimiter: RateLimiter,
+  campaignHandler?: CampaignRouteHandler
 ): void {
-  void handleRequest(req, res, options, loginLimiter);
+  void handleRequest(req, res, options, loginLimiter, goLimiter, campaignHandler);
 }
 
 function requestHeaderValue(req: IncomingMessage, header: string): string | undefined {
@@ -34,7 +45,9 @@ async function handleRequest(
   req: IncomingMessage,
   res: ServerResponse,
   options: ServerOptions,
-  loginLimiter: RateLimiter
+  loginLimiter: RateLimiter,
+  goLimiter: RateLimiter,
+  campaignHandler?: CampaignRouteHandler
 ): Promise<void> {
   const startedAt = performance.now();
   const requestId = requestHeaderValue(req, "x-request-id") ?? randomUUID();
@@ -59,6 +72,19 @@ async function handleRequest(
     res.writeHead(200, { "content-type": "application/json" });
     res.end(body);
     return;
+  }
+
+  if (options.linkRoutes) {
+    const linkDeps: LinkRouteDeps = options.linkRoutes.goRateLimiter
+      ? options.linkRoutes
+      : { ...options.linkRoutes, goRateLimiter: goLimiter };
+    const linkHandled = await handleLinkRoute(req, res, pathname, linkDeps);
+    if (linkHandled.handled) return;
+  }
+
+  if (campaignHandler) {
+    const campaignHandled = await campaignHandler(req, res, pathname);
+    if (campaignHandled.handled) return;
   }
 
   if (!options.authService && pathname !== "/health") {
@@ -88,7 +114,15 @@ export function createServerInstance(options: ServerOptions = {}): Server {
   const limiter = createFixedWindowRateLimiter(
     options.loginRateLimit ?? { windowMs: 60_000, max: 10 }
   );
-  return createServer((req, res) => route(req, res, options, limiter));
+  const goLimiter = createFixedWindowRateLimiter(
+    options.goRateLimit ?? { windowMs: 60_000, max: 120 }
+  );
+  const campaignHandler = options.campaignRoutes
+    ? registerCampaignRoutes(options.campaignRoutes)
+    : undefined;
+  return createServer((req, res) =>
+    route(req, res, options, limiter, goLimiter, campaignHandler)
+  );
 }
 
 export function startServer(port: number, options: ServerOptions = {}): Promise<Server> {

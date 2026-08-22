@@ -190,7 +190,7 @@ suite("apps/api oauth http (mock oidc provider)", () => {
 
   async function resetSchema(): Promise<void> {
     await db.unsafe(
-      "DROP TABLE IF EXISTS audit_log, sessions, user_identities, users, organizations, schema_migrations CASCADE"
+      "DROP TABLE IF EXISTS clicks, audit_log, sessions, user_identities, users, organizations, schema_migrations CASCADE"
     );
   }
 

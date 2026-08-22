@@ -59,6 +59,24 @@ All notable changes to this project. Format based on Keep a Changelog.
   idempotent conversion ingestion, campaign transition validation.
 - **Docs** THREAT-MODEL.md, PRIVACY.md, COMPLIANCE.md, CONTRIBUTING.md.
 
+### Added — Phase 2 completion
+
+- **AFF-2** `/go/{slug}` redirect service: 302 w/ UTM merge, fire-and-forget
+  click recording (migration 0007 — hashed-truncated IPs, never raw),
+  ClickRecorded domain events, RBAC-guarded org clicks listing.
+- **AFF-3** Campaign/link/conversion HTTP APIs (RBAC + CSRF + legal-transition
+  validation) and HMAC-SHA256 signed webhook ingestion with ±300s replay
+  window, constant-time compare, and idempotent dedupe.
+- **ADT-1** `packages/platform-adapters`: versioned PlatformPolicyRegistry,
+  capability-gated BasePlatformAdapter, TikTok Shop / Shopee / Meta / YouTube
+  skeletons with deterministic request signing (injected fetch + getSecret);
+  contract-parity test against PlatformCapability.
+
+### Fixed
+
+- Prod wiring: linkRoutes now receives authService (clicks endpoint 503 → 401).
+- Fail-closed guard extended to CLICK_SALT + WEBHOOK_INGEST_SECRET dev defaults.
+
 ### Fixed
 
 - **D1** Circular-import TDZ in `@zaff/contracts` barrel crashing built

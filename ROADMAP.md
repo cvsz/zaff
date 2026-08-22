@@ -39,10 +39,10 @@ Goal: runnable monorepo skeleton with auth-ready boundaries.
 - [x] AFF-1: migration 0006 + org-scoped repos + contracts schemas for
   providers/merchants/products/offers/campaigns/links/conversions
   (idempotent conversion ingestion, campaign transition validation)
-- [ ] Adapter interfaces + capability registry wiring to PlatformCapabilityMatrix
-- [ ] TikTok / Shopee / Meta / YouTube adapter skeletons with sandbox contract tests
-- [ ] `/go/{slug}` link redirect service with click attribution (privacy-conscious)
-- [ ] Campaign HTTP API + conversion ingestion (webhook + manual)
+- [x] Adapter interfaces + capability registry wiring (ADT-1: policy registry + gated skeletons)
+- [x] TikTok / Shopee / Meta / YouTube adapter skeletons with sandbox contract tests (ADT-1; live conformance pending real credentials)
+- [x] `/go/{slug}` link redirect service with click attribution — hashed-truncated IPs only (AFF-2)
+- [x] Campaign HTTP API + conversion ingestion incl. signed idempotent webhook (AFF-3)
 - [x] Account recovery service layer (FND-8); HTTP wiring pending
 
 ## Phase 3 — Content Studio

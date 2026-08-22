@@ -5,6 +5,7 @@
     { "path": "packages/db" },
     { "path": "packages/events" },
     { "path": "packages/storage" },
+    { "path": "packages/platform-adapters" },
     { "path": "packages/observability" },
     { "path": "services/auth" },
     { "path": "apps/api" }
